@@ -1,48 +1,41 @@
-name: Build Flutter APK
+name: Flutter Build APK
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
-      - master
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout kode dari repository
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-      # 2. Setup Java (dibutuhkan untuk Android)
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '11'
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.x'
+        channel: 'stable'
 
-      # 3. Setup Flutter
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.16.0' # Ganti sesuai versi Flutter kamu
+    - name: Get dependencies
+      run: flutter pub get
 
-      # 4. Install dependencies
-      - name: Install dependencies
-        run: flutter pub get
+    - name: Build APK
+      run: flutter build apk --release
 
-      # 5. Build APK (Release)
-      - name: Build APK
-        run: flutter build apk --release
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: game-space-pro-apk
+        path: build/app/outputs/flutter-apk/app-release.apk
+        retention-days: 30
 
-      # 6. Upload APK sebagai artifact
-      - name: Upload APK
-        uses: actions/upload-artifact@v3
-        with:
-          name: app-release
-          path: build/app/outputs/flutter-apk/app-release.apk
+    - name: Upload App Bundle
+      uses: actions/upload-artifact@v4
+      with:
+        name: game-space-pro-bundle
+        path: build/app/outputs/bundle/release/app-release.aab
+        retention-days: 30
+        if-no-files-found: ignore
